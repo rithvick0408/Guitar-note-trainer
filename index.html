@@ -25,6 +25,14 @@ header{display:flex;align-items:center;justify-content:space-between;padding:18p
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.toolbar button{flex:1}
 select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
 footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
+.catalog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.catalog-item{background:#f7f5ef;border-radius:12px;padding:8px 6px;color:#17202a;min-width:0}
+.catalog-item svg{display:block;width:100%;height:auto}
+.catalog-label{text-align:center;font-weight:750;font-size:.85rem;margin-top:3px}
+.catalog-detail{text-align:center;color:#526071;font-size:.72rem}
+.catalog-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:10px 0}
+.catalog-toolbar select{flex:1}
+@media(min-width:600px){.catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(min-width:600px){main{padding-left:22px;padding-right:22px}.card{padding:20px}.answer{font-size:1.05rem}}
 </style>
 </head>
@@ -54,6 +62,26 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
     <button class="secondary" id="reset">Reset stats</button>
   </div>
   <p class="muted" id="modeHelp">Questions are randomized across all 30 valid positions.</p>
+</section>
+<section class="card">
+  <div class="question-top"><h2 class="section-title" style="margin:0">All 30 note positions</h2><span>Reference</span></div>
+  <p class="muted">Browse every valid position with its treble-clef notation, string number and fret. No quiz answers are revealed here.</p>
+  <button class="secondary" id="toggleCatalog" style="width:100%">Show all 30 notations</button>
+  <div id="catalogPanel" hidden>
+    <div class="catalog-toolbar">
+      <select id="catalogFilter" aria-label="Filter notes by string">
+        <option value="all">All six strings</option>
+        <option value="6">6th string (E)</option>
+        <option value="5">5th string (A)</option>
+        <option value="4">4th string (D)</option>
+        <option value="3">3rd string (G)</option>
+        <option value="2">2nd string (B)</option>
+        <option value="1">1st string (E)</option>
+      </select>
+      <span class="muted" id="catalogCount">30 positions</span>
+    </div>
+    <div class="catalog-grid" id="catalogGrid"></div>
+  </div>
 </section>
 <section class="card">
   <h2 class="section-title">Your weak positions</h2>
@@ -112,7 +140,7 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
     if(y<31){for(let ly=16;ly>=y;ly-=30) ledger.push(`<line x1="145" y1="${ly}" x2="255" y2="${ly}" stroke="#333" stroke-width="1.5"/>`)}
     const accidental=p.accidental?`<text x="164" y="${y+6}" text-anchor="middle" font-size="27" fill="#222">♯</text>`:"";
     // Circled string marker is standard guitar notation and disambiguates the one repeated pitch (B4).
-    const marker=(p.note==="B" && p.string===2 && p.fret===0)?`<circle cx="278" cy="${y-18}" r="10" fill="none" stroke="#333" stroke-width="1.5"/><text x="278" y="${y-14}" text-anchor="middle" font-size="12" fill="#222">2</text>`:"";
+    const marker=(p.note==="B" && ((p.string===2 && p.fret===0)||(p.string===3 && p.fret===4)))?`<circle cx="278" cy="${y-18}" r="10" fill="none" stroke="#333" stroke-width="1.5"/><text x="278" y="${y-14}" text-anchor="middle" font-size="12" fill="#222">${p.string}</text>`:"";
     return `<svg viewBox="0 0 400 280" role="img" aria-label="Treble clef note on a five-line staff">
       <rect width="400" height="205" rx="8" fill="#f7f5ef"/>
       ${lineYs.map(ly=>`<line x1="80" y1="${ly}" x2="330" y2="${ly}" stroke="#333" stroke-width="1.7"/>`).join("")}
@@ -123,6 +151,19 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
       ${y>=91?`<line x1="229" y1="${y}" x2="229" y2="${y-47}" stroke="#171717" stroke-width="2"/>`:`<line x1="211" y1="${y}" x2="211" y2="${y+47}" stroke="#171717" stroke-width="2"/>`}
       ${marker}
     </svg>`;
+  }
+  function renderCatalog(){
+    const filter=$("catalogFilter").value;
+    const shown=positions.filter(p=>filter==="all" || String(p.string)===filter);
+    $("catalogCount").textContent=`${shown.length} positions`;
+    $("catalogGrid").innerHTML=shown.map(p=>{
+      const fretText=p.fret===0?"Open":`${p.fret}${ordinal(p.fret)} fret`;
+      return `<article class="catalog-item">
+        ${staffSVG(p)}
+        <div class="catalog-label">${p.label}</div>
+        <div class="catalog-detail">String ${p.string} · ${fretText}</div>
+      </article>`;
+    }).join("");
   }
   function weightedTarget(){
     const mode=$("mode").value;
@@ -189,6 +230,13 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
       $("next").textContent="Next question";save();renderStats();
     }else newQuestion();
   }
+  $("toggleCatalog").addEventListener("click",()=>{
+    const panel=$("catalogPanel");
+    panel.hidden=!panel.hidden;
+    $("toggleCatalog").textContent=panel.hidden?"Show all 30 notations":"Hide notation reference";
+    if(!panel.hidden) renderCatalog();
+  });
+  $("catalogFilter").addEventListener("change",renderCatalog);
   $("next").addEventListener("click",submit);
   $("skip").addEventListener("click",()=>{if(!answered){newQuestion()}});
   $("mode").addEventListener("change",()=>{newQuestion();$("modeHelp").textContent=$("mode").value==="weak"?"Questions are weighted toward positions you miss or have not practised enough.":"Questions are randomized across all 30 valid positions."});
