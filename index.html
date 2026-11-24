@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10151d">
+<meta name="description" content="A lightweight guitar note trainer for the first four frets across all six strings.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Guitar Note Trainer</title>
+<style>
+:root{color-scheme:dark;--bg:#0c1118;--panel:#151d28;--panel2:#1b2634;--line:#2b394a;--text:#f3f6fa;--muted:#aab7c7;--accent:#75d6b0;--bad:#ff8585;--good:#83e0b7}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#172433 0%,var(--bg) 58%);color:var(--text);font:16px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+main{width:min(720px,100%);margin:0 auto;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px;gap:12px}h1{font-size:1.28rem;margin:0;letter-spacing:.01em}.sub{font-size:.82rem;color:var(--muted);margin-top:2px}
+.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--accent);font-size:.75rem;white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 14px}.stat,.card{background:rgba(21,29,40,.94);border:1px solid var(--line);border-radius:16px}.stat{padding:10px;text-align:center}.stat b{display:block;font-size:1.15rem}.stat span{color:var(--muted);font-size:.75rem}
+.card{padding:16px;margin:12px 0}.question-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.82rem;margin-bottom:10px}
+.staff-wrap{background:#f7f5ef;border-radius:12px;padding:8px 4px;overflow:hidden}.staff-wrap svg{display:block;width:100%;height:auto;max-height:205px}
+.prompt{text-align:center;color:var(--muted);font-size:.88rem;margin:13px 0 10px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}.answer{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:15px 8px;border-radius:13px;font-size:1rem;font-weight:650;min-height:58px;cursor:pointer;touch-action:manipulation}.answer:active{transform:scale(.985)}.answer:disabled{cursor:default;opacity:1}.answer.correct{border-color:var(--good);background:#15372c}.answer.wrong{border-color:var(--bad);background:#3b2025}
+.feedback{display:none;border-radius:12px;padding:12px;margin-top:12px;font-size:.9rem}.feedback.show{display:block}.feedback.good{background:#15372c;color:#d9ffed}.feedback.bad{background:#3b2025;color:#ffe3e3}
+.actions{display:flex;gap:9px;margin-top:13px}.primary,.secondary{border:0;border-radius:12px;padding:13px 14px;font-weight:700;font-size:.92rem;cursor:pointer}.primary{background:var(--accent);color:#082019;flex:1}.secondary{background:#263446;color:var(--text);border:1px solid var(--line)}
+.section-title{font-size:1rem;margin:0 0 8px}.muted{color:var(--muted);font-size:.84rem}.weak-list{display:grid;gap:8px}.weak-row{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;background:var(--panel2);border-radius:10px;font-size:.84rem}.weak-row span:last-child{color:var(--muted)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.toolbar button{flex:1}
+select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
+footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
+@media(min-width:600px){main{padding-left:22px;padding-right:22px}.card{padding:20px}.answer{font-size:1.05rem}}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>Guitar Note Trainer</h1><div class="sub">First 4 frets · All 6 strings</div></div><div class="pill">30 positions</div></header>
+<div class="stats">
+  <div class="stat"><b id="score">0 / 0</b><span>Correct</span></div>
+  <div class="stat"><b id="accuracy">—</b><span>Accuracy</span></div>
+  <div class="stat"><b id="streak">0</b><span>Streak</span></div>
+</div>
+<section class="card">
+  <div class="question-top"><span id="modeLabel">All positions</span><span id="questionCount">Question 1</span></div>
+  <div class="staff-wrap" id="staff" aria-label="Treble clef staff notation"></div>
+  <p class="prompt">Which guitar position does this note represent?</p>
+  <div class="answers" id="answers"></div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+  <div class="actions"><button class="primary" id="next" disabled>Submit answer</button><button class="secondary" id="skip">Skip</button></div>
+</section>
+<section class="card">
+  <h2 class="section-title">Practice mode</h2>
+  <div class="toolbar">
+    <select id="mode" aria-label="Practice mode">
+      <option value="all">All 30 positions</option>
+      <option value="weak">Weak positions first</option>
+    </select>
+    <button class="secondary" id="reset">Reset stats</button>
+  </div>
+  <p class="muted" id="modeHelp">Questions are randomized across all 30 valid positions.</p>
+</section>
+<section class="card">
+  <h2 class="section-title">Your weak positions</h2>
+  <p class="muted">Positions you miss more often are prioritized in Weak positions first mode.</p>
+  <div class="weak-list" id="weakList"><div class="muted">Answer a few questions to build your report.</div></div>
+</section>
+<footer>Progress is saved on this device. Add this page to your Home Screen for app-like access.</footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const strings = [
+    {n:6, open:"E", notes:["E","F","F#","G","G#"], writtenOct:3},
+    {n:5, open:"A", notes:["A","A#","B","C","C#"], writtenOct:3},
+    {n:4, open:"D", notes:["D","D#","E","F","F#"], writtenOct:4},
+    {n:3, open:"G", notes:["G","G#","A","A#","B"], writtenOct:4},
+    {n:2, open:"B", notes:["B","C","C#","D","D#"], writtenOct:4},
+    {n:1, open:"E", notes:["E","F","F#","G","G#"], writtenOct:5}
+  ];
+  const positions = strings.flatMap(s => s.notes.map((note,fret)=>({
+    id:`${s.n}-${fret}`, note, string:s.n, fret,
+    label:`${note}${s.n} (${fret===0?"Open":`${fret}${ordinal(fret)} fret`})`,
+    // Guitar notation is conventionally written one octave above sounding pitch.
+    letter: note.replace("#",""), accidental: note.includes("#") ? "#" : "",
+    octave: Math.floor((baseMidi(s.n) + fret) / 12) - 1
+  })));
+  function ordinal(n){return n===1?"st":n===2?"nd":n===3?"rd":"th"}
+  const semis=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  function noteIndex(n){return semis.indexOf(n)}
+  function baseMidi(stringNo){return ({6:52,5:57,4:62,3:67,2:71,1:76})[stringNo]}
+  const $=id=>document.getElementById(id);
+  const STORE="guitar-note-trainer-v1";
+  let data=load(), current=null, selected=null, answered=false, questionNo=0;
+  function load(){try{return Object.assign({attempts:0,correct:0,streak:0,byPos:{}},JSON.parse(localStorage.getItem(STORE)||"{}"))}catch{return {attempts:0,correct:0,streak:0,byPos:{}}}}
+  function save(){localStorage.setItem(STORE,JSON.stringify(data))}
+  function renderStats(){
+    $("score").textContent=`${data.correct} / ${data.attempts}`;
+    $("accuracy").textContent=data.attempts?`${Math.round(data.correct/data.attempts*100)}%`:"—";
+    $("streak").textContent=data.streak;
+    const weak=positions.map(p=>({p,s:data.byPos[p.id]||{seen:0,miss:0}}))
+      .filter(x=>x.s.seen>0).sort((a,b)=>(b.s.miss/Math.max(1,b.s.seen))-(a.s.miss/Math.max(1,a.s.seen)) || b.s.miss-a.s.miss).slice(0,6);
+    $("weakList").innerHTML=weak.length?weak.map(x=>`<div class="weak-row"><span>${x.p.label}</span><span>${x.s.miss} missed / ${x.s.seen} attempts</span></div>`).join(""):'<div class="muted">Answer a few questions to build your report.</div>';
+  }
+  function staffSVG(p){
+    // Standard treble-clef staff. Guitar notes are written an octave above sounding pitch.
+    // Staff bottom line is E4; diatonic positions are calculated from E4.
+    const letterOrder=["C","D","E","F","G","A","B"];
+    const diatonic=(letter,oct)=>oct*7+letterOrder.indexOf(letter);
+    const target=diatonic(p.letter,p.octave);
+    const bottom=diatonic("E",4);
+    const steps=target-bottom; // half-space steps
+    const y=151-steps*15;
+    const lineYs=[151,121,91,61,31];
+    const ledger=[];
+    if(y>151){for(let ly=181;ly<=y;ly+=30) ledger.push(`<line x1="145" y1="${ly}" x2="255" y2="${ly}" stroke="#333" stroke-width="1.5"/>`)}
+    if(y<31){for(let ly=16;ly>=y;ly-=30) ledger.push(`<line x1="145" y1="${ly}" x2="255" y2="${ly}" stroke="#333" stroke-width="1.5"/>`)}
+    const accidental=p.accidental?`<text x="164" y="${y+6}" text-anchor="middle" font-size="27" fill="#222">♯</text>`:"";
+    // Circled string marker is standard guitar notation and disambiguates the one repeated pitch (B4).
+    const marker=(p.note==="B" && p.string===2 && p.fret===0)?`<circle cx="278" cy="${y-18}" r="10" fill="none" stroke="#333" stroke-width="1.5"/><text x="278" y="${y-14}" text-anchor="middle" font-size="12" fill="#222">2</text>`:"";
+    return `<svg viewBox="0 0 400 280" role="img" aria-label="Treble clef note on a five-line staff">
+      <rect width="400" height="205" rx="8" fill="#f7f5ef"/>
+      ${lineYs.map(ly=>`<line x1="80" y1="${ly}" x2="330" y2="${ly}" stroke="#333" stroke-width="1.7"/>`).join("")}
+      ${ledger.join("")}
+      <text x="92" y="137" font-family="serif" font-size="112" fill="#222">𝄞</text>
+      ${accidental}
+      <ellipse cx="220" cy="${y}" rx="10" ry="7" transform="rotate(-18 220 ${y})" fill="#171717"/>
+      ${y>=91?`<line x1="229" y1="${y}" x2="229" y2="${y-47}" stroke="#171717" stroke-width="2"/>`:`<line x1="211" y1="${y}" x2="211" y2="${y+47}" stroke="#171717" stroke-width="2"/>`}
+      ${marker}
+    </svg>`;
+  }
+  function weightedTarget(){
+    const mode=$("mode").value;
+    if(mode==="all" || !Object.keys(data.byPos).length) return positions[Math.floor(Math.random()*positions.length)];
+    const weights=positions.map(p=>{
+      const s=data.byPos[p.id]||{seen:0,miss:0};
+      const rate=s.seen?s.miss/s.seen:0.35;
+      return {p,w:1+rate*7+(s.miss*0.6)+(s.seen===0?1.5:0)};
+    });
+    const total=weights.reduce((a,x)=>a+x.w,0); let r=Math.random()*total;
+    for(const x of weights){r-=x.w;if(r<=0)return x.p}
+    return positions[0];
+  }
+  function makeOptions(correct){
+    const candidates=positions.filter(p=>p.id!==correct.id);
+    const score=p=>{
+      let s=0;
+      if(p.note===correct.note)s+=100;
+      if(p.string===correct.string && Math.abs(p.fret-correct.fret)===1)s+=80;
+      if(p.string===correct.string)s+=45;
+      if(p.fret===correct.fret)s+=20;
+      const idxA=positions.indexOf(p),idxB=positions.indexOf(correct);
+      if(Math.abs(idxA-idxB)<=2)s+=10;
+      return s+Math.random()*8;
+    };
+    candidates.sort((a,b)=>score(b)-score(a));
+    const chosen=[correct,...candidates.slice(0,3)];
+    for(let i=chosen.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[chosen[i],chosen[j]]=[chosen[j],chosen[i]]}
+    return chosen;
+  }
+  function newQuestion(){
+    current=weightedTarget();selected=null;answered=false;questionNo++;
+    $("staff").innerHTML=staffSVG(current);
+    $("questionCount").textContent=`Question ${questionNo}`;
+    $("modeLabel").textContent=$("mode").value==="weak"?"Weak positions first":"All positions";
+    $("feedback").className="feedback";$("feedback").textContent="";
+    $("next").textContent="Submit answer";$("next").disabled=true;
+    $("answers").innerHTML="";
+    makeOptions(current).forEach((p,i)=>{
+      const b=document.createElement("button");b.className="answer";b.textContent=p.label;b.type="button";
+      b.addEventListener("click",()=>{if(answered)return;selected=p.id;document.querySelectorAll(".answer").forEach(x=>x.style.outline="none");b.style.outline="2px solid var(--accent)";$("next").disabled=false});
+      $("answers").appendChild(b);
+    });
+    $("skip").disabled=false;
+  }
+  function submit(){
+    if(!current)return;
+    if(!answered){
+      if(!selected)return;
+      answered=true;data.attempts++;
+      const bucket=data.byPos[current.id]||(data.byPos[current.id]={seen:0,miss:0});
+      bucket.seen++;
+      const correct=selected===current.id;
+      if(correct){data.correct++;data.streak++}else{bucket.miss++;data.streak=0}
+      document.querySelectorAll(".answer").forEach(b=>{
+        b.disabled=true;
+        const p=positions.find(x=>x.label===b.textContent);
+        if(p.id===current.id)b.classList.add("correct");
+        else if(p.id===selected)b.classList.add("wrong");
+      });
+      const fret=current.fret===0?"Open":`${current.fret}${ordinal(current.fret)} fret`;
+      $("feedback").className=`feedback show ${correct?"good":"bad"}`;
+      $("feedback").textContent=`${correct?"Correct!":"Incorrect."} Correct answer: ${current.label}. String ${current.string}, ${fret}.`;
+      $("next").textContent="Next question";save();renderStats();
+    }else newQuestion();
+  }
+  $("next").addEventListener("click",submit);
+  $("skip").addEventListener("click",()=>{if(!answered){newQuestion()}});
+  $("mode").addEventListener("change",()=>{newQuestion();$("modeHelp").textContent=$("mode").value==="weak"?"Questions are weighted toward positions you miss or have not practised enough.":"Questions are randomized across all 30 valid positions."});
+  $("reset").addEventListener("click",()=>{if(confirm("Reset all practice statistics on this device?")){data={attempts:0,correct:0,streak:0,byPos:{}};save();renderStats();newQuestion()}});
+  renderStats();newQuestion();
+  if("serviceWorker" in navigator && location.protocol.startsWith("http")) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+})();
+</script>
+</body>
+</html>
