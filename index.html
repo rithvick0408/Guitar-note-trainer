@@ -137,7 +137,9 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
     const lineYs=[151,121,91,61,31];
     const ledger=[];
     if(y>151){for(let ly=181;ly<=y;ly+=30) ledger.push(`<line x1="145" y1="${ly}" x2="255" y2="${ly}" stroke="#333" stroke-width="1.5"/>`)}
-    if(y<31){for(let ly=16;ly>=y;ly-=30) ledger.push(`<line x1="145" y1="${ly}" x2="255" y2="${ly}" stroke="#333" stroke-width="1.5"/>`)}
+    // Above the staff, ledger lines sit on A5, C6, E6...;
+    // G5 is the space immediately above the top F5 line and needs no ledger line.
+    if(y<31){for(let ly=1;ly>=y;ly-=30) ledger.push(`<line x1="145" y1="${ly}" x2="255" y2="${ly}" stroke="#333" stroke-width="1.5"/>`)}
     const accidental=p.accidental?`<text x="164" y="${y+6}" text-anchor="middle" font-size="27" fill="#222">♯</text>`:"";
     // Circled string marker is standard guitar notation and disambiguates the one repeated pitch (B4).
     const marker=(p.note==="B" && ((p.string===2 && p.fret===0)||(p.string===3 && p.fret===4)))?`<circle cx="278" cy="${y-18}" r="10" fill="none" stroke="#333" stroke-width="1.5"/><text x="278" y="${y-14}" text-anchor="middle" font-size="12" fill="#222">${p.string}</text>`:"";
