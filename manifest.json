@@ -1,11 +1,11 @@
 {
-  "name": "Guitar Note Trainer",
-  "short_name": "Guitar Trainer",
+  "name": "Guitar Notation Trainer",
+  "short_name": "Notation Trainer",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0c1118",
   "theme_color": "#10151d",
-  "description": "Practice the first four frets across all six guitar strings.",
+  "description": "Read sheet music and identify the matching guitar string and fret.",
   "icons": [
     {
       "src": "icon.svg",
