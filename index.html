@@ -41,17 +41,17 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
 .board-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:12px 0 10px;font-size:.88rem}
 .board-heading span{color:var(--muted);font-size:.75rem;text-align:right}
 .fretboard-wrap{background:linear-gradient(145deg,#68482f,#795034);border:2px solid #bd9068;border-radius:22px;padding:12px 10px;overflow:hidden}
-.fretboard{display:grid;grid-template-columns:64px repeat(5,minmax(0,1fr));column-gap:7px;row-gap:9px;min-width:0;align-items:stretch}
+.fretboard{display:grid;grid-template-columns:52px minmax(42px,.82fr) 10px repeat(4,minmax(0,1fr));column-gap:6px;row-gap:9px;min-width:0;align-items:stretch}
 .fret-head{font-size:clamp(.55rem,2.5vw,.82rem);font-weight:850;color:#fff0df;text-align:center;padding:3px 0 8px;white-space:nowrap}
 .string-head{display:flex;justify-content:center;align-items:center;color:#fff4e9;font-weight:850;background:rgba(58,37,25,.16);border:0}
-.string-head b{font-size:clamp(1rem,4vw,1.3rem)}
+.string-head b{font-size:clamp(1rem,4vw,1.3rem)}\n.nut-head{min-height:1px}.nut-divider{width:10px;background:#e1bea0;border-radius:2px;min-height:clamp(76px,19vw,112px);align-self:stretch}
 .fret-cell{position:relative;min-width:0;height:clamp(76px,19vw,112px);border:3px solid #b68b66;border-radius:22px;background:#805b40;color:#fff7ee;display:flex;align-items:center;justify-content:center;padding:4px;cursor:pointer;touch-action:manipulation;overflow:visible}
 .fret-cell:before{content:"";position:absolute;left:-3px;right:-3px;top:50%;height:6px;background:rgba(222,190,158,.52);transform:translateY(-50%);pointer-events:none;z-index:0}
 .fret-cell .pick{width:clamp(31px,7vw,48px);height:clamp(42px,9vw,62px);border:3px solid #fff8f0;border-radius:999px;background:#fff8f0;z-index:1;display:block;box-shadow:0 2px 4px rgba(0,0,0,.18)}
 /* Open-string markers sit outside the fretted neck, like a real guitar nut layout. */
-.fret-cell[data-fret="0"]{height:clamp(76px,19vw,112px);border:0;border-radius:0;background:transparent}
+.fret-cell[data-fret="0"]{height:clamp(76px,19vw,112px);border:0;border-radius:0;background:transparent;padding:0}
 .fret-cell[data-fret="0"]:before{left:0;right:0;height:6px;background:rgba(222,190,158,.7)}
-.fret-cell[data-fret="0"]:after{content:"";position:absolute;right:-7px;top:0;bottom:0;width:10px;background:#e1bea0;border-radius:2px;z-index:2;pointer-events:none}
+.fret-cell[data-fret="0"]:after{content:none}
 .fret-cell[data-fret="0"] .pick{width:clamp(39px,8vw,58px);height:clamp(39px,8vw,58px);border-radius:50%;border:5px solid #fff8f0}
 .fret-cell.selected{outline:3px solid var(--accent);outline-offset:-3px;background:#53664f}
 .fret-cell[data-fret="0"].selected{background:rgba(117,214,176,.25)}
@@ -67,7 +67,7 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
 .board-legend span{display:flex;align-items:center;gap:5px}
 .board-legend i{width:12px;height:12px;border:2px solid;border-radius:4px;display:inline-block}
 .legend-neutral{border-color:#b68c68;background:#79583f}.legend-correct{border-color:#83e0b7;background:#245d4b}.legend-wrong{border-color:#ff8585;background:#733c49}
-@media(max-width:390px){.fretboard-wrap{padding:8px 6px}.fretboard{grid-template-columns:43px repeat(5,minmax(0,1fr));column-gap:4px;row-gap:7px}.fret-head{font-size:clamp(.48rem,2.2vw,.68rem)}.fret-cell{border-radius:16px}.board-legend{gap:8px;font-size:.68rem}}
+@media(max-width:390px){.fretboard-wrap{padding:8px 6px}.fretboard{grid-template-columns:34px minmax(35px,.78fr) 7px repeat(4,minmax(0,1fr));column-gap:3px;row-gap:7px}.nut-divider{width:7px}.fret-head{font-size:clamp(.43rem,2vw,.66rem)}.fret-cell{border-radius:16px}.board-legend{gap:8px;font-size:.68rem}}
 \n@media(min-width:600px){.catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(min-width:600px){main{padding-left:22px;padding-right:22px}.card{padding:20px}.answer{font-size:1.05rem}}
 </style>
@@ -87,7 +87,7 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
     <div class="target-notation" id="targetNotation" aria-label="Target note shown in treble clef"></div>
     <p class="prompt">Identify every matching position on the fretboard below. The note names are hidden.</p>
   </div>
-  <div class="board-heading"><strong>Guitar · fretboard view</strong><span>Thin string ↑ · Thick string ↓</span></div>
+  <div class="board-heading"><strong>Guitar · eye view</strong><span>Thin string ↑ · Thick string ↓</span></div>
   <div class="fretboard-wrap">
     <div class="fretboard" id="fretboard" aria-label="All six guitar strings and first four frets"></div>
   </div>
@@ -157,7 +157,7 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
   function baseMidi(stringNo){return ({6:52,5:57,4:62,3:67,2:71,1:76})[stringNo]}
   const $=id=>document.getElementById(id);
   const STORE="guitar-note-trainer-v1";
-  let data=load(), current=null, selected=null, answered=false, questionNo=0;
+  let data=load(), current=null, selected=null, answered=false, questionNo=0, currentNote=null, targetPositions=[], selectedIds=new Set();
   function load(){try{return Object.assign({attempts:0,correct:0,streak:0,byPos:{}},JSON.parse(localStorage.getItem(STORE)||"{}"))}catch{return {attempts:0,correct:0,streak:0,byPos:{}}}}
   function save(){localStorage.setItem(STORE,JSON.stringify(data))}
   function renderStats(){
@@ -210,13 +210,16 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
   }
   function renderFretboard(){
     const grid=$("fretboard");
-    const headers=["STRING","OPEN","FRET 1","FRET 2","FRET 3","FRET 4"];
-    grid.innerHTML=headers.map((h,i)=>`<div class="fret-head">${h}</div>`).join("");
+    const headers=["STRING","OPEN","", "FRET 1","FRET 2","FRET 3","FRET 4"];
+    grid.innerHTML=headers.map((h,i)=>i===2?`<div class="nut-head" aria-hidden="true"></div>`:`<div class="fret-head">${h}</div>`).join("");
     for(let stringNo=1;stringNo<=6;stringNo++){
       const stringPositions=positions.filter(p=>p.string===stringNo).sort((a,b)=>a.fret-b.fret);
       const sh=document.createElement("div");sh.className="string-head";
       sh.innerHTML=`<b>${stringNo}</b>`;grid.appendChild(sh);
-      stringPositions.forEach(p=>{
+      stringPositions.forEach((p,index)=>{
+        if(p.fret===1){
+          const nut=document.createElement("div");nut.className="nut-divider";nut.setAttribute("aria-hidden","true");grid.appendChild(nut);
+        }
         const btn=document.createElement("button");btn.type="button";btn.className="fret-cell";
         btn.dataset.pos=p.id;btn.dataset.fret=String(p.fret);btn.setAttribute("aria-label",`String ${p.string}, ${p.fret===0?"open":`fret ${p.fret}`}`);
         btn.innerHTML=`<span class="pick" aria-hidden="true"></span>`;
