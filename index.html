@@ -18,7 +18,25 @@ header{display:flex;align-items:center;justify-content:space-between;padding:18p
 .card{padding:16px;margin:12px 0}.question-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.82rem;margin-bottom:10px}
 .staff-wrap{background:#f7f5ef;border-radius:12px;padding:8px 4px;overflow:hidden}.staff-wrap svg{display:block;width:100%;height:auto;max-height:205px}
 .prompt{text-align:center;color:var(--muted);font-size:.88rem;margin:13px 0 10px}
-.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}.answer{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:15px 8px;border-radius:13px;font-size:1rem;font-weight:650;min-height:58px;cursor:pointer;touch-action:manipulation}.answer:active{transform:scale(.985)}.answer:disabled{cursor:default;opacity:1}.answer.correct{border-color:var(--good);background:#15372c}.answer.wrong{border-color:var(--bad);background:#3b2025}
+/* Interactive guitar fretboard answer grid */
+.fretboard-wrap{background:linear-gradient(145deg,#684a35,#503725);border:2px solid #9b7657;border-radius:20px;padding:12px 10px 14px;overflow:hidden}
+.fretboard-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 3px 12px;color:#f4e8dc;font-weight:750;font-size:.9rem}
+.fretboard-heading span:last-child{font-weight:500;color:#d2c4b8;font-size:.75rem;text-align:right}
+.fretboard{display:grid;grid-template-columns:34px repeat(5,minmax(0,1fr));gap:5px;align-items:stretch}
+.fretboard-label{display:flex;align-items:center;justify-content:center;color:#f7eee5;font-size:.68rem;font-weight:750;min-height:28px;text-align:center}
+.fretboard-string{display:flex;align-items:center;justify-content:center;color:#fff4e9;font-size:1rem;font-weight:750}
+.fret-cell{position:relative;min-width:0;height:66px;border:2px solid #a98261;border-radius:10px;background:#805d43;display:flex;align-items:flex-start;justify-content:center;padding:8px 3px;cursor:pointer;touch-action:manipulation}
+.fret-cell::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:#c4a487;opacity:.75;pointer-events:none}
+.fret-cell:active{transform:scale(.97)}
+.fret-cell .dot{position:relative;z-index:1;width:28px;height:28px;border-radius:8px;background:#fbf4ed;border:2px solid #fff;box-shadow:0 1px 2px #392719}
+.fret-cell.selected{border:3px solid #75d6b0;background:#9b7657}
+.fret-cell.selected .dot{background:#75d6b0;border-color:#d7ffec}
+.fret-cell:disabled{cursor:default;opacity:1}
+.fret-cell.correct{border:3px solid #75e0b2;background:#245c48}
+.fret-cell.correct .dot{background:#75e0b2;border-color:#d9ffec}
+.fret-cell.wrong{border:3px solid #ff8296;background:#713b48}
+.fret-cell.wrong .dot{background:#ff8296;border-color:#ffe0e6}
+@media(max-width:390px){.fretboard-wrap{padding:10px 7px}.fretboard{grid-template-columns:27px repeat(5,minmax(0,1fr));gap:4px}.fret-cell{height:57px;padding-top:7px}.fret-cell .dot{width:24px;height:24px}.fretboard-heading{font-size:.82rem}}
 .feedback{display:none;border-radius:12px;padding:12px;margin-top:12px;font-size:.9rem}.feedback.show{display:block}.feedback.good{background:#15372c;color:#d9ffed}.feedback.bad{background:#3b2025;color:#ffe3e3}
 .actions{display:flex;gap:9px;margin-top:13px}.primary,.secondary{border:0;border-radius:12px;padding:13px 14px;font-weight:700;font-size:.92rem;cursor:pointer}.primary{background:var(--accent);color:#082019;flex:1}.secondary{background:#263446;color:var(--text);border:1px solid var(--line)}
 .section-title{font-size:1rem;margin:0 0 8px}.muted{color:var(--muted);font-size:.84rem}.weak-list{display:grid;gap:8px}.weak-row{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;background:var(--panel2);border-radius:10px;font-size:.84rem}.weak-row span:last-child{color:var(--muted)}
@@ -47,8 +65,14 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
 <section class="card">
   <div class="question-top"><span id="modeLabel">All positions</span><span id="questionCount">Question 1</span></div>
   <div class="staff-wrap" id="staff" aria-label="Treble clef staff notation"></div>
-  <p class="prompt">Which guitar position does this note represent?</p>
-  <div class="answers" id="answers"></div>
+  <p class="prompt">Select the matching position on the fretboard.</p>
+  <div class="fretboard-wrap">
+    <div class="fretboard-heading"><span>Guitar · eye view</span><span>Thin string ↑ · Thick string ↓</span></div>
+    <div class="fretboard" id="fretboard" aria-label="Guitar fretboard answer grid">
+      <div class="fretboard-label">String</div>
+      <div class="fretboard-label">OPEN</div><div class="fretboard-label">FRET 1</div><div class="fretboard-label">FRET 2</div><div class="fretboard-label">FRET 3</div><div class="fretboard-label">FRET 4</div>
+    </div>
+  </div>
   <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
   <div class="actions"><button class="primary" id="next" disabled>Submit answer</button><button class="secondary" id="skip">Skip</button></div>
 </section>
@@ -179,23 +203,6 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
     for(const x of weights){r-=x.w;if(r<=0)return x.p}
     return positions[0];
   }
-  function makeOptions(correct){
-    const candidates=positions.filter(p=>p.id!==correct.id);
-    const score=p=>{
-      let s=0;
-      if(p.note===correct.note)s+=100;
-      if(p.string===correct.string && Math.abs(p.fret-correct.fret)===1)s+=80;
-      if(p.string===correct.string)s+=45;
-      if(p.fret===correct.fret)s+=20;
-      const idxA=positions.indexOf(p),idxB=positions.indexOf(correct);
-      if(Math.abs(idxA-idxB)<=2)s+=10;
-      return s+Math.random()*8;
-    };
-    candidates.sort((a,b)=>score(b)-score(a));
-    const chosen=[correct,...candidates.slice(0,3)];
-    for(let i=chosen.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[chosen[i],chosen[j]]=[chosen[j],chosen[i]]}
-    return chosen;
-  }
   function newQuestion(){
     current=weightedTarget();selected=null;answered=false;questionNo++;
     $("staff").innerHTML=staffSVG(current);
@@ -203,12 +210,31 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
     $("modeLabel").textContent=$("mode").value==="weak"?"Weak positions first":"All positions";
     $("feedback").className="feedback";$("feedback").textContent="";
     $("next").textContent="Submit answer";$("next").disabled=true;
-    $("answers").innerHTML="";
-    makeOptions(current).forEach((p,i)=>{
-      const b=document.createElement("button");b.className="answer";b.textContent=p.label;b.type="button";
-      b.addEventListener("click",()=>{if(answered)return;selected=p.id;document.querySelectorAll(".answer").forEach(x=>x.style.outline="none");b.style.outline="2px solid var(--accent)";$("next").disabled=false});
-      $("answers").appendChild(b);
-    });
+    const board=$("fretboard");
+    board.querySelectorAll(".fret-cell").forEach(cell=>cell.remove());
+    // Eye view: 1st (thin/high E) string at the top, 6th (thick/low E) at the bottom.
+    for(let stringNo=1;stringNo<=6;stringNo++){
+      const label=document.createElement("div");
+      label.className="fretboard-string";
+      label.textContent=stringNo;
+      board.appendChild(label);
+      for(let fret=0;fret<=4;fret++){
+        const pos=positions.find(x=>x.string===stringNo && x.fret===fret);
+        const cell=document.createElement("button");
+        cell.type="button";
+        cell.className="fret-cell";
+        cell.dataset.position=pos.id;
+        cell.setAttribute("aria-label",`String ${stringNo}, ${fret===0?"open":`fret ${fret}`}`);
+        cell.innerHTML='<span class="dot" aria-hidden="true"></span>';
+        cell.addEventListener("click",()=>{
+          if(answered)return;
+          selected=pos.id;
+          board.querySelectorAll(".fret-cell").forEach(x=>x.classList.toggle("selected",x===cell));
+          $("next").disabled=false;
+        });
+        board.appendChild(cell);
+      }
+    }
     $("skip").disabled=false;
   }
   function submit(){
@@ -220,11 +246,11 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
       bucket.seen++;
       const correct=selected===current.id;
       if(correct){data.correct++;data.streak++}else{bucket.miss++;data.streak=0}
-      document.querySelectorAll(".answer").forEach(b=>{
-        b.disabled=true;
-        const p=positions.find(x=>x.label===b.textContent);
-        if(p.id===current.id)b.classList.add("correct");
-        else if(p.id===selected)b.classList.add("wrong");
+      document.querySelectorAll(".fret-cell").forEach(cell=>{
+        cell.disabled=true;
+        if(cell.dataset.position===current.id)cell.classList.add("correct");
+        else if(cell.dataset.position===selected)cell.classList.add("wrong");
+        cell.classList.remove("selected");
       });
       const fret=current.fret===0?"Open":`${current.fret}${ordinal(current.fret)} fret`;
       $("feedback").className=`feedback show ${correct?"good":"bad"}`;
