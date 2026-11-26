@@ -32,7 +32,36 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
 .catalog-detail{text-align:center;color:#526071;font-size:.72rem}
 .catalog-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:10px 0}
 .catalog-toolbar select{flex:1}
-@media(min-width:600px){.catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+ 
+.note-prompt{text-align:center;padding:8px 0 12px}
+.eyebrow{font-size:.78rem;letter-spacing:.18em;color:var(--muted);font-weight:650}
+.target-note{font-size:clamp(3.8rem,15vw,6rem);line-height:1.08;font-weight:850;color:var(--accent);margin:10px 0}
+.board-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:12px 0 10px;font-size:.88rem}
+.board-heading span{color:var(--muted);font-size:.75rem;text-align:right}
+.fretboard-wrap{background:linear-gradient(135deg,#62452f,#805a3c);border:2px solid #a77a54;border-radius:16px;padding:9px;overflow:hidden}
+.fretboard{display:grid;grid-template-columns:54px repeat(5,minmax(0,1fr));gap:4px;min-width:0}
+.fret-head{font-size:clamp(.52rem,2.2vw,.76rem);font-weight:800;color:#f4e4d4;text-align:center;padding:5px 0 7px;white-space:nowrap}
+.string-head{display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff0df;font-weight:800;border-right:4px solid #e2c5a4;border-radius:5px 0 0 5px;background:rgba(58,37,25,.3)}
+.string-head b{font-size:1rem}.string-head small{font-size:.7rem;opacity:.85}
+.fret-cell{position:relative;min-width:0;min-height:76px;border:1px solid #b68c68;border-radius:9px;background:#79583f;color:#fff7ee;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:5px 1px;cursor:pointer;touch-action:manipulation}
+.fret-cell:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(245,225,205,.5);pointer-events:none}
+.fret-cell .pick{width:17px;height:17px;border:2px solid #fff7ee;border-radius:5px;background:#fff7ee;margin-bottom:1px;z-index:1}
+.fret-cell .pitch{font-size:clamp(.78rem,3.6vw,1.12rem);font-weight:850;line-height:1.05;z-index:1;text-shadow:0 1px 2px #49301f}
+.fret-cell .position{font-size:clamp(.58rem,2.5vw,.76rem);opacity:.9;z-index:1}
+.fret-cell.selected{outline:3px solid var(--accent);outline-offset:-3px;background:#53664f}
+.fret-cell.selected .pick{background:var(--accent);border-color:var(--accent)}
+.fret-cell.correct{background:#245d4b;border-color:#83e0b7;outline:2px solid #83e0b7}
+.fret-cell.correct .pick{background:#83e0b7;border-color:#83e0b7}
+.fret-cell.wrong{background:#733c49;border-color:#ff8585;outline:2px solid #ff8585}
+.fret-cell.wrong .pick{background:#ff8585;border-color:#ff8585}
+.fret-cell.missed{background:#72533d;border-color:#ffbd76;outline:2px dashed #ffbd76}
+.fret-cell:disabled{opacity:1;cursor:default}
+.board-legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.75rem;margin:13px 0 2px}
+.board-legend span{display:flex;align-items:center;gap:5px}
+.board-legend i{width:12px;height:12px;border:2px solid;border-radius:4px;display:inline-block}
+.legend-neutral{border-color:#b68c68;background:#79583f}.legend-correct{border-color:#83e0b7;background:#245d4b}.legend-wrong{border-color:#ff8585;background:#733c49}
+@media(max-width:380px){.fretboard{grid-template-columns:43px repeat(5,minmax(0,1fr));gap:3px}.fret-cell{min-height:68px}.fretboard-wrap{padding:6px}.board-legend{gap:8px;font-size:.68rem}}
+\n@media(min-width:600px){.catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(min-width:600px){main{padding-left:22px;padding-right:22px}.card{padding:20px}.answer{font-size:1.05rem}}
 </style>
 </head>
@@ -40,49 +69,37 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
 <main>
 <header><div><h1>Guitar Note Trainer</h1><div class="sub">First 4 frets · All 6 strings</div></div><div class="pill">30 positions</div></header>
 <div class="stats">
-  <div class="stat"><b id="score">0 / 0</b><span>Correct</span></div>
+  <div class="stat"><b id="score">0</b><span>Attempts</span></div>
+  <div class="stat"><b id="correctCount">0</b><span>Correct</span></div>
   <div class="stat"><b id="accuracy">—</b><span>Accuracy</span></div>
-  <div class="stat"><b id="streak">0</b><span>Streak</span></div>
 </div>
 <section class="card">
-  <div class="question-top"><span id="modeLabel">All positions</span><span id="questionCount">Question 1</span></div>
-  <div class="staff-wrap" id="staff" aria-label="Treble clef staff notation"></div>
-  <p class="prompt">Which guitar position does this note represent?</p>
-  <div class="answers" id="answers"></div>
+  <div class="question-top"><span id="modeLabel">All note names</span><span id="questionCount">Question 1</span></div>
+  <div class="note-prompt">
+    <div class="eyebrow">FIND EVERY POSITION FOR THIS NOTE</div>
+    <div class="target-note" id="targetNote">C#</div>
+    <p class="prompt">Select every matching position on the guitar. All 30 positions are shown.</p>
+  </div>
+  <div class="board-heading"><strong>Guitar · fretboard view</strong><span>Thin string ↑ · Thick string ↓</span></div>
+  <div class="fretboard-wrap">
+    <div class="fretboard" id="fretboard" aria-label="All six guitar strings and first four frets"></div>
+  </div>
+  <div class="board-legend"><span><i class="legend-neutral"></i>Not selected</span><span><i class="legend-correct"></i>Correct</span><span><i class="legend-wrong"></i>Missed / wrong</span></div>
   <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
-  <div class="actions"><button class="primary" id="next" disabled>Submit answer</button><button class="secondary" id="skip">Skip</button></div>
+  <div class="actions"><button class="primary" id="next" disabled>Submit positions</button><button class="secondary" id="skip">Skip</button></div>
 </section>
 <section class="card">
   <h2 class="section-title">Practice mode</h2>
   <div class="toolbar">
     <select id="mode" aria-label="Practice mode">
-      <option value="all">All 30 positions</option>
+      <option value="all">All note names</option>
       <option value="weak">Weak positions first</option>
     </select>
     <button class="secondary" id="reset">Reset stats</button>
   </div>
-  <p class="muted" id="modeHelp">Questions are randomized across all 30 valid positions.</p>
+  <p class="muted" id="modeHelp">Questions are randomized across all 12 note names found in the first 30 positions.</p>
 </section>
-<section class="card">
-  <div class="question-top"><h2 class="section-title" style="margin:0">All 30 note positions</h2><span>Reference</span></div>
-  <p class="muted">Browse every valid position with its treble-clef notation, string number and fret. No quiz answers are revealed here.</p>
-  <button class="secondary" id="toggleCatalog" style="width:100%">Show all 30 notations</button>
-  <div id="catalogPanel" hidden>
-    <div class="catalog-toolbar">
-      <select id="catalogFilter" aria-label="Filter notes by string">
-        <option value="all">All six strings</option>
-        <option value="6">6th string (E)</option>
-        <option value="5">5th string (A)</option>
-        <option value="4">4th string (D)</option>
-        <option value="3">3rd string (G)</option>
-        <option value="2">2nd string (B)</option>
-        <option value="1">1st string (E)</option>
-      </select>
-      <span class="muted" id="catalogCount">30 positions</span>
-    </div>
-    <div class="catalog-grid" id="catalogGrid"></div>
-  </div>
-</section>
+
 <section class="card">
   <h2 class="section-title">Your weak positions</h2>
   <p class="muted">Positions you miss more often are prioritized in Weak positions first mode.</p>
@@ -118,12 +135,12 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
   function load(){try{return Object.assign({attempts:0,correct:0,streak:0,byPos:{}},JSON.parse(localStorage.getItem(STORE)||"{}"))}catch{return {attempts:0,correct:0,streak:0,byPos:{}}}}
   function save(){localStorage.setItem(STORE,JSON.stringify(data))}
   function renderStats(){
-    $("score").textContent=`${data.correct} / ${data.attempts}`;
+    $("score").textContent=data.attempts;
+    $("correctCount").textContent=data.correct;
     $("accuracy").textContent=data.attempts?`${Math.round(data.correct/data.attempts*100)}%`:"—";
-    $("streak").textContent=data.streak;
     const weak=positions.map(p=>({p,s:data.byPos[p.id]||{seen:0,miss:0}}))
       .filter(x=>x.s.seen>0).sort((a,b)=>(b.s.miss/Math.max(1,b.s.seen))-(a.s.miss/Math.max(1,a.s.seen)) || b.s.miss-a.s.miss).slice(0,6);
-    $("weakList").innerHTML=weak.length?weak.map(x=>`<div class="weak-row"><span>${x.p.label}</span><span>${x.s.miss} missed / ${x.s.seen} attempts</span></div>`).join(""):'<div class="muted">Answer a few questions to build your report.</div>';
+    $("weakList").innerHTML=weak.length?weak.map(x=>`<div class="weak-row"><span>${x.p.label}</span><span>${x.s.miss} missed / ${x.s.seen} seen</span></div>`).join(""):'<div class="muted">Answer a few questions to build your report.</div>';
   }
   function staffSVG(p){
     // Standard treble-clef staff. Guitar notes are written an octave above sounding pitch.
@@ -154,94 +171,87 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
       ${marker}
     </svg>`;
   }
-  function renderCatalog(){
-    const filter=$("catalogFilter").value;
-    const shown=positions.filter(p=>filter==="all" || String(p.string)===filter);
-    $("catalogCount").textContent=`${shown.length} positions`;
-    $("catalogGrid").innerHTML=shown.map(p=>{
-      const fretText=p.fret===0?"Open":`${p.fret}${ordinal(p.fret)} fret`;
-      return `<article class="catalog-item">
-        ${staffSVG(p)}
-        <div class="catalog-label">${p.label}</div>
-        <div class="catalog-detail">String ${p.string} · ${fretText}</div>
-      </article>`;
-    }).join("");
-  }
+  const notePool=[...new Set(positions.map(p=>p.note))];
+  let currentNote=null, targetPositions=[], selectedIds=new Set();
   function weightedTarget(){
-    const mode=$("mode").value;
-    if(mode==="all" || !Object.keys(data.byPos).length) return positions[Math.floor(Math.random()*positions.length)];
-    const weights=positions.map(p=>{
-      const s=data.byPos[p.id]||{seen:0,miss:0};
-      const rate=s.seen?s.miss/s.seen:0.35;
-      return {p,w:1+rate*7+(s.miss*0.6)+(s.seen===0?1.5:0)};
+    if($("mode").value==="all") return notePool[Math.floor(Math.random()*notePool.length)];
+    const weighted=notePool.map(note=>{
+      const group=positions.filter(p=>p.note===note);
+      const weight=group.reduce((sum,p)=>{
+        const st=data.byPos[p.id]||{seen:0,miss:0};
+        return sum+1+(st.miss*2)+(st.seen===0?0.7:0);
+      },0);
+      return {note,weight};
     });
-    const total=weights.reduce((a,x)=>a+x.w,0); let r=Math.random()*total;
-    for(const x of weights){r-=x.w;if(r<=0)return x.p}
-    return positions[0];
+    const total=weighted.reduce((n,x)=>n+x.weight,0);let r=Math.random()*total;
+    for(const x of weighted){r-=x.weight;if(r<=0)return x.note}
+    return weighted[0].note;
   }
-  function makeOptions(correct){
-    const candidates=positions.filter(p=>p.id!==correct.id);
-    const score=p=>{
-      let s=0;
-      if(p.note===correct.note)s+=100;
-      if(p.string===correct.string && Math.abs(p.fret-correct.fret)===1)s+=80;
-      if(p.string===correct.string)s+=45;
-      if(p.fret===correct.fret)s+=20;
-      const idxA=positions.indexOf(p),idxB=positions.indexOf(correct);
-      if(Math.abs(idxA-idxB)<=2)s+=10;
-      return s+Math.random()*8;
-    };
-    candidates.sort((a,b)=>score(b)-score(a));
-    const chosen=[correct,...candidates.slice(0,3)];
-    for(let i=chosen.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[chosen[i],chosen[j]]=[chosen[j],chosen[i]]}
-    return chosen;
+  function renderFretboard(){
+    const grid=$("fretboard");
+    const headers=["STRING","OPEN","FRET 1","FRET 2","FRET 3","FRET 4"];
+    grid.innerHTML=headers.map((h,i)=>`<div class="fret-head">${h}</div>`).join("");
+    for(let stringNo=1;stringNo<=6;stringNo++){
+      const stringPositions=positions.filter(p=>p.string===stringNo).sort((a,b)=>a.fret-b.fret);
+      const sh=document.createElement("div");sh.className="string-head";
+      sh.innerHTML=`<b>${stringNo}</b>`;grid.appendChild(sh);
+      stringPositions.forEach(p=>{
+        const btn=document.createElement("button");btn.type="button";btn.className="fret-cell";
+        btn.dataset.pos=p.id;btn.setAttribute("aria-label",`Select string ${p.string}, ${p.fret===0?"open":`fret ${p.fret}`}`);
+        btn.innerHTML=`<span class="pick" aria-hidden="true"></span>`;
+        btn.addEventListener("click",()=>{
+          if(answered)return;
+          if(selectedIds.has(p.id)){selectedIds.delete(p.id);btn.classList.remove("selected")}
+          else{selectedIds.add(p.id);btn.classList.add("selected")}
+          $("next").disabled=selectedIds.size===0;
+        });
+        grid.appendChild(btn);
+      });
+    }
   }
   function newQuestion(){
-    current=weightedTarget();selected=null;answered=false;questionNo++;
-    $("staff").innerHTML=staffSVG(current);
+    currentNote=weightedTarget();
+    targetPositions=positions.filter(p=>p.note===currentNote);
+    selectedIds=new Set();answered=false;questionNo++;
+    $("targetNote").textContent=currentNote;
     $("questionCount").textContent=`Question ${questionNo}`;
-    $("modeLabel").textContent=$("mode").value==="weak"?"Weak positions first":"All positions";
+    $("modeLabel").textContent=$("mode").value==="weak"?"Weak positions first":"All note names";
     $("feedback").className="feedback";$("feedback").textContent="";
-    $("next").textContent="Submit answer";$("next").disabled=true;
-    $("answers").innerHTML="";
-    makeOptions(current).forEach((p,i)=>{
-      const b=document.createElement("button");b.className="answer";b.textContent=p.label;b.type="button";
-      b.addEventListener("click",()=>{if(answered)return;selected=p.id;document.querySelectorAll(".answer").forEach(x=>x.style.outline="none");b.style.outline="2px solid var(--accent)";$("next").disabled=false});
-      $("answers").appendChild(b);
-    });
+    $("next").textContent="Submit positions";$("next").disabled=true;
     $("skip").disabled=false;
+    renderFretboard();
   }
   function submit(){
-    if(!current)return;
     if(!answered){
-      if(!selected)return;
+      if(selectedIds.size===0)return;
       answered=true;data.attempts++;
-      const bucket=data.byPos[current.id]||(data.byPos[current.id]={seen:0,miss:0});
-      bucket.seen++;
-      const correct=selected===current.id;
-      if(correct){data.correct++;data.streak++}else{bucket.miss++;data.streak=0}
-      document.querySelectorAll(".answer").forEach(b=>{
-        b.disabled=true;
-        const p=positions.find(x=>x.label===b.textContent);
-        if(p.id===current.id)b.classList.add("correct");
-        else if(p.id===selected)b.classList.add("wrong");
+      const targetSet=new Set(targetPositions.map(p=>p.id));
+      const exact=[...targetSet].every(id=>selectedIds.has(id)) && [...selectedIds].every(id=>targetSet.has(id));
+      targetPositions.forEach(p=>{
+        const bucket=data.byPos[p.id]||(data.byPos[p.id]={seen:0,miss:0});
+        bucket.seen++;
+        if(!selectedIds.has(p.id))bucket.miss++;
       });
-      const fret=current.fret===0?"Open":`${current.fret}${ordinal(current.fret)} fret`;
-      $("feedback").className=`feedback show ${correct?"good":"bad"}`;
-      $("feedback").textContent=`${correct?"Correct!":"Incorrect."} Correct answer: ${current.label}. String ${current.string}, ${fret}.`;
+      [...selectedIds].filter(id=>!targetSet.has(id)).forEach(id=>{
+        const bucket=data.byPos[id]||(data.byPos[id]={seen:0,miss:0});
+        bucket.seen++;bucket.miss++;
+      });
+      if(exact){data.correct++;data.streak++}else data.streak=0;
+      document.querySelectorAll(".fret-cell").forEach(btn=>{
+        btn.disabled=true;
+        const id=btn.dataset.pos;
+        if(targetSet.has(id))btn.classList.add(selectedIds.has(id)?"correct":"missed");
+        else if(selectedIds.has(id))btn.classList.add("wrong");
+      });
+      const answerList=targetPositions.map(p=>p.label).join(" · ");
+      $("feedback").className=`feedback show ${exact?"good":"bad"}`;
+      $("feedback").textContent=`${exact?"Perfect! All positions found.":"Not quite. The correct positions are:"} ${answerList}.`;
       $("next").textContent="Next question";save();renderStats();
     }else newQuestion();
   }
-  $("toggleCatalog").addEventListener("click",()=>{
-    const panel=$("catalogPanel");
-    panel.hidden=!panel.hidden;
-    $("toggleCatalog").textContent=panel.hidden?"Show all 30 notations":"Hide notation reference";
-    if(!panel.hidden) renderCatalog();
-  });
-  $("catalogFilter").addEventListener("change",renderCatalog);
   $("next").addEventListener("click",submit);
   $("skip").addEventListener("click",()=>{if(!answered){newQuestion()}});
-  $("mode").addEventListener("change",()=>{newQuestion();$("modeHelp").textContent=$("mode").value==="weak"?"Questions are weighted toward positions you miss or have not practised enough.":"Questions are randomized across all 30 valid positions."});
+  $("mode").addEventListener("change",()=>{newQuestion();$("modeHelp").textContent=$("mode").value==="weak"?"Questions are weighted toward note names containing positions you miss or have not practised enough.":"Questions are randomized across all 12 note names found in the first 30 positions."});
   $("reset").addEventListener("click",()=>{if(confirm("Reset all practice statistics on this device?")){data={attempts:0,correct:0,streak:0,byPos:{}};save();renderStats();newQuestion()}});
   renderStats();newQuestion();
   if("serviceWorker" in navigator && location.protocol.startsWith("http")) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
