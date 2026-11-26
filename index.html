@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10151d">
-<meta name="description" content="A guitar notation trainer for translating sheet music into fretboard positions.">
+<meta name="description" content="A lightweight guitar note trainer for the first four frets across all six strings.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<title>Guitar Notation Trainer</title>
+<title>Guitar Note Trainer</title>
 <style>
 :root{color-scheme:dark;--bg:#0c1118;--panel:#151d28;--panel2:#1b2634;--line:#2b394a;--text:#f3f6fa;--muted:#aab7c7;--accent:#75d6b0;--bad:#ff8585;--good:#83e0b7}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#172433 0%,var(--bg) 58%);color:var(--text);font:16px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
@@ -18,25 +18,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:18p
 .card{padding:16px;margin:12px 0}.question-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.82rem;margin-bottom:10px}
 .staff-wrap{background:#f7f5ef;border-radius:12px;padding:8px 4px;overflow:hidden}.staff-wrap svg{display:block;width:100%;height:auto;max-height:205px}
 .prompt{text-align:center;color:var(--muted);font-size:.88rem;margin:13px 0 10px}
-/* Interactive guitar fretboard answer grid */
-.fretboard-wrap{background:linear-gradient(145deg,#684a35,#503725);border:2px solid #9b7657;border-radius:20px;padding:12px 10px 14px;overflow:hidden}
-.fretboard-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 3px 12px;color:#f4e8dc;font-weight:750;font-size:.9rem}
-.fretboard-heading span:last-child{font-weight:500;color:#d2c4b8;font-size:.75rem;text-align:right}
-.fretboard{display:grid;grid-template-columns:34px repeat(5,minmax(0,1fr));gap:5px;align-items:stretch}
-.fretboard-label{display:flex;align-items:center;justify-content:center;color:#f7eee5;font-size:.68rem;font-weight:750;min-height:28px;text-align:center}
-.fretboard-string{display:flex;align-items:center;justify-content:center;color:#fff4e9;font-size:1rem;font-weight:750}
-.fret-cell{position:relative;min-width:0;height:66px;border:2px solid #a98261;border-radius:10px;background:#805d43;display:flex;align-items:flex-start;justify-content:center;padding:8px 3px;cursor:pointer;touch-action:manipulation}
-.fret-cell::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:#c4a487;opacity:.75;pointer-events:none}
-.fret-cell:active{transform:scale(.97)}
-.fret-cell .dot{position:relative;z-index:1;width:28px;height:28px;border-radius:8px;background:#fbf4ed;border:2px solid #fff;box-shadow:0 1px 2px #392719}
-.fret-cell.selected{border:3px solid #75d6b0;background:#9b7657}
-.fret-cell.selected .dot{background:#75d6b0;border-color:#d7ffec}
-.fret-cell:disabled{cursor:default;opacity:1}
-.fret-cell.correct{border:3px solid #75e0b2;background:#245c48}
-.fret-cell.correct .dot{background:#75e0b2;border-color:#d9ffec}
-.fret-cell.wrong{border:3px solid #ff8296;background:#713b48}
-.fret-cell.wrong .dot{background:#ff8296;border-color:#ffe0e6}
-@media(max-width:390px){.fretboard-wrap{padding:10px 7px}.fretboard{grid-template-columns:27px repeat(5,minmax(0,1fr));gap:4px}.fret-cell{height:57px;padding-top:7px}.fret-cell .dot{width:24px;height:24px}.fretboard-heading{font-size:.82rem}}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}.answer{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:15px 8px;border-radius:13px;font-size:1rem;font-weight:650;min-height:58px;cursor:pointer;touch-action:manipulation}.answer:active{transform:scale(.985)}.answer:disabled{cursor:default;opacity:1}.answer.correct{border-color:var(--good);background:#15372c}.answer.wrong{border-color:var(--bad);background:#3b2025}
 .feedback{display:none;border-radius:12px;padding:12px;margin-top:12px;font-size:.9rem}.feedback.show{display:block}.feedback.good{background:#15372c;color:#d9ffed}.feedback.bad{background:#3b2025;color:#ffe3e3}
 .actions{display:flex;gap:9px;margin-top:13px}.primary,.secondary{border:0;border-radius:12px;padding:13px 14px;font-weight:700;font-size:.92rem;cursor:pointer}.primary{background:var(--accent);color:#082019;flex:1}.secondary{background:#263446;color:var(--text);border:1px solid var(--line)}
 .section-title{font-size:1rem;margin:0 0 8px}.muted{color:var(--muted);font-size:.84rem}.weak-list{display:grid;gap:8px}.weak-row{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;background:var(--panel2);border-radius:10px;font-size:.84rem}.weak-row span:last-child{color:var(--muted)}
@@ -50,42 +32,79 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
 .catalog-detail{text-align:center;color:#526071;font-size:.72rem}
 .catalog-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:10px 0}
 .catalog-toolbar select{flex:1}
-@media(min-width:600px){.catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+ 
+.note-prompt{text-align:center;padding:8px 0 12px}
+.eyebrow{font-size:.78rem;letter-spacing:.18em;color:var(--muted);font-weight:650}
+.target-notation{width:min(100%,420px);margin:12px auto 8px;background:#f7f5ef;border-radius:12px;padding:8px 5px}
+.target-notation svg{display:block;width:100%;height:auto;max-height:245px}
+
+.board-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:12px 0 10px;font-size:.88rem}
+.board-heading span{color:var(--muted);font-size:.75rem;text-align:right}
+.fretboard-wrap{background:linear-gradient(145deg,#68482f,#795034);border:2px solid #bd9068;border-radius:22px;padding:12px 10px;overflow:hidden}
+.fretboard{display:grid;grid-template-columns:64px repeat(5,minmax(0,1fr));column-gap:7px;row-gap:9px;min-width:0;align-items:stretch}
+.fret-head{font-size:clamp(.55rem,2.5vw,.82rem);font-weight:850;color:#fff0df;text-align:center;padding:3px 0 8px;white-space:nowrap}
+.string-head{display:flex;justify-content:center;align-items:center;color:#fff4e9;font-weight:850;background:rgba(58,37,25,.16);border:0}
+.string-head b{font-size:clamp(1rem,4vw,1.3rem)}
+.fret-cell{position:relative;min-width:0;height:clamp(76px,19vw,112px);border:3px solid #b68b66;border-radius:22px;background:#805b40;color:#fff7ee;display:flex;align-items:center;justify-content:center;padding:4px;cursor:pointer;touch-action:manipulation;overflow:visible}
+.fret-cell:before{content:"";position:absolute;left:-3px;right:-3px;top:50%;height:6px;background:rgba(222,190,158,.52);transform:translateY(-50%);pointer-events:none;z-index:0}
+.fret-cell .pick{width:clamp(31px,7vw,48px);height:clamp(42px,9vw,62px);border:3px solid #fff8f0;border-radius:999px;background:#fff8f0;z-index:1;display:block;box-shadow:0 2px 4px rgba(0,0,0,.18)}
+/* Open-string markers sit outside the fretted neck, like a real guitar nut layout. */
+.fret-cell[data-fret="0"]{height:clamp(76px,19vw,112px);border:0;border-radius:0;background:transparent}
+.fret-cell[data-fret="0"]:before{left:0;right:0;height:6px;background:rgba(222,190,158,.7)}
+.fret-cell[data-fret="0"]:after{content:"";position:absolute;right:-7px;top:0;bottom:0;width:10px;background:#e1bea0;border-radius:2px;z-index:2;pointer-events:none}
+.fret-cell[data-fret="0"] .pick{width:clamp(39px,8vw,58px);height:clamp(39px,8vw,58px);border-radius:50%;border:5px solid #fff8f0}
+.fret-cell.selected{outline:3px solid var(--accent);outline-offset:-3px;background:#53664f}
+.fret-cell[data-fret="0"].selected{background:rgba(117,214,176,.25)}
+.fret-cell.selected .pick{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 5px #245d4b}
+.fret-cell.correct{background:#245d4b;border-color:#83e0b7;outline:2px solid #83e0b7}
+.fret-cell.correct .pick{background:#83e0b7;border-color:#83e0b7}
+.fret-cell.wrong{background:#733c49;border-color:#ff8585;outline:2px solid #ff8585}
+.fret-cell.wrong .pick{background:#ff8585;border-color:#ff8585}
+.fret-cell.missed{background:#72533d;border-color:#ffbd76;outline:2px dashed #ffbd76}
+.fret-cell[data-fret="0"].correct,.fret-cell[data-fret="0"].missed,.fret-cell[data-fret="0"].wrong{background:rgba(0,0,0,.12)}
+.fret-cell:disabled{opacity:1;cursor:default}
+.board-legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.75rem;margin:13px 0 2px}
+.board-legend span{display:flex;align-items:center;gap:5px}
+.board-legend i{width:12px;height:12px;border:2px solid;border-radius:4px;display:inline-block}
+.legend-neutral{border-color:#b68c68;background:#79583f}.legend-correct{border-color:#83e0b7;background:#245d4b}.legend-wrong{border-color:#ff8585;background:#733c49}
+@media(max-width:390px){.fretboard-wrap{padding:8px 6px}.fretboard{grid-template-columns:43px repeat(5,minmax(0,1fr));column-gap:4px;row-gap:7px}.fret-head{font-size:clamp(.48rem,2.2vw,.68rem)}.fret-cell{border-radius:16px}.board-legend{gap:8px;font-size:.68rem}}
+\n@media(min-width:600px){.catalog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(min-width:600px){main{padding-left:22px;padding-right:22px}.card{padding:20px}.answer{font-size:1.05rem}}
 </style>
 </head>
 <body>
 <main>
-<header><div><h1>Guitar Notation Trainer</h1><div class="sub">First 4 frets · All 6 strings</div></div><div class="pill">30 positions</div></header>
+<header><div><h1>Guitar Note Trainer</h1><div class="sub">First 4 frets · All 6 strings</div></div><div class="pill">30 positions</div></header>
 <div class="stats">
-  <div class="stat"><b id="score">0 / 0</b><span>Correct</span></div>
+  <div class="stat"><b id="score">0</b><span>Attempts</span></div>
+  <div class="stat"><b id="correctCount">0</b><span>Correct</span></div>
   <div class="stat"><b id="accuracy">—</b><span>Accuracy</span></div>
-  <div class="stat"><b id="streak">0</b><span>Streak</span></div>
 </div>
 <section class="card">
-  <div class="question-top"><span id="modeLabel">All positions</span><span id="questionCount">Question 1</span></div>
-  <div class="staff-wrap" id="staff" aria-label="Treble clef staff notation"></div>
-  <p class="prompt">Select the matching position on the fretboard.</p>
-  <div class="fretboard-wrap">
-    <div class="fretboard-heading"><span>Guitar · eye view</span><span>Thin string ↑ · Thick string ↓</span></div>
-    <div class="fretboard" id="fretboard" aria-label="Guitar fretboard answer grid">
-      <div class="fretboard-label">String</div>
-      <div class="fretboard-label">OPEN</div><div class="fretboard-label">FRET 1</div><div class="fretboard-label">FRET 2</div><div class="fretboard-label">FRET 3</div><div class="fretboard-label">FRET 4</div>
-    </div>
+  <div class="question-top"><span id="modeLabel">All note names</span><span id="questionCount">Question 1</span></div>
+  <div class="note-prompt">
+    <div class="eyebrow">FIND EVERY POSITION FOR THIS NOTE</div>
+    <div class="target-notation" id="targetNotation" aria-label="Target note shown in treble clef"></div>
+    <p class="prompt">Identify every matching position on the fretboard below. The note names are hidden.</p>
   </div>
+  <div class="board-heading"><strong>Guitar · fretboard view</strong><span>Thin string ↑ · Thick string ↓</span></div>
+  <div class="fretboard-wrap">
+    <div class="fretboard" id="fretboard" aria-label="All six guitar strings and first four frets"></div>
+  </div>
+  <div class="board-legend"><span><i class="legend-neutral"></i>Not selected</span><span><i class="legend-correct"></i>Correct</span><span><i class="legend-wrong"></i>Missed / wrong</span></div>
   <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
-  <div class="actions"><button class="primary" id="next" disabled>Submit answer</button><button class="secondary" id="skip">Skip</button></div>
+  <div class="actions"><button class="primary" id="next" disabled>Submit positions</button><button class="secondary" id="skip">Skip</button></div>
 </section>
 <section class="card">
   <h2 class="section-title">Practice mode</h2>
   <div class="toolbar">
     <select id="mode" aria-label="Practice mode">
-      <option value="all">All 30 positions</option>
+      <option value="all">All note names</option>
       <option value="weak">Weak positions first</option>
     </select>
     <button class="secondary" id="reset">Reset stats</button>
   </div>
-  <p class="muted" id="modeHelp">Questions are randomized across all 30 valid positions.</p>
+  <p class="muted" id="modeHelp">Questions are randomized across all 12 note names found in the first 30 positions.</p>
 </section>
 <section class="card">
   <div class="question-top"><h2 class="section-title" style="margin:0">All 30 note positions</h2><span>Reference</span></div>
@@ -142,12 +161,12 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
   function load(){try{return Object.assign({attempts:0,correct:0,streak:0,byPos:{}},JSON.parse(localStorage.getItem(STORE)||"{}"))}catch{return {attempts:0,correct:0,streak:0,byPos:{}}}}
   function save(){localStorage.setItem(STORE,JSON.stringify(data))}
   function renderStats(){
-    $("score").textContent=`${data.correct} / ${data.attempts}`;
+    $("score").textContent=data.attempts;
+    $("correctCount").textContent=data.correct;
     $("accuracy").textContent=data.attempts?`${Math.round(data.correct/data.attempts*100)}%`:"—";
-    $("streak").textContent=data.streak;
     const weak=positions.map(p=>({p,s:data.byPos[p.id]||{seen:0,miss:0}}))
       .filter(x=>x.s.seen>0).sort((a,b)=>(b.s.miss/Math.max(1,b.s.seen))-(a.s.miss/Math.max(1,a.s.seen)) || b.s.miss-a.s.miss).slice(0,6);
-    $("weakList").innerHTML=weak.length?weak.map(x=>`<div class="weak-row"><span>${x.p.label}</span><span>${x.s.miss} missed / ${x.s.seen} attempts</span></div>`).join(""):'<div class="muted">Answer a few questions to build your report.</div>';
+    $("weakList").innerHTML=weak.length?weak.map(x=>`<div class="weak-row"><span>${x.p.label}</span><span>${x.s.miss} missed / ${x.s.seen} seen</span></div>`).join(""):'<div class="muted">Answer a few questions to build your report.</div>';
   }
   function staffSVG(p){
     // Standard treble-clef staff. Guitar notes are written an octave above sounding pitch.
@@ -165,8 +184,6 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
     // G5 is the space immediately above the top F5 line and needs no ledger line.
     if(y<31){for(let ly=1;ly>=y;ly-=30) ledger.push(`<line x1="145" y1="${ly}" x2="255" y2="${ly}" stroke="#333" stroke-width="1.5"/>`)}
     const accidental=p.accidental?`<text x="164" y="${y+6}" text-anchor="middle" font-size="27" fill="#222">♯</text>`:"";
-    // Circled string marker is standard guitar notation and disambiguates the one repeated pitch (B4).
-    const marker=(p.note==="B" && ((p.string===2 && p.fret===0)||(p.string===3 && p.fret===4)))?`<circle cx="278" cy="${y-18}" r="10" fill="none" stroke="#333" stroke-width="1.5"/><text x="278" y="${y-14}" text-anchor="middle" font-size="12" fill="#222">${p.string}</text>`:"";
     return `<svg viewBox="0 0 400 280" role="img" aria-label="Treble clef note on a five-line staff">
       <rect width="400" height="205" rx="8" fill="#f7f5ef"/>
       ${lineYs.map(ly=>`<line x1="80" y1="${ly}" x2="330" y2="${ly}" stroke="#333" stroke-width="1.7"/>`).join("")}
@@ -175,99 +192,88 @@ footer{text-align:center;color:#8493a5;font-size:.74rem;padding:14px}
       ${accidental}
       <ellipse cx="220" cy="${y}" rx="10" ry="7" transform="rotate(-18 220 ${y})" fill="#171717"/>
       ${y>=91?`<line x1="229" y1="${y}" x2="229" y2="${y-47}" stroke="#171717" stroke-width="2"/>`:`<line x1="211" y1="${y}" x2="211" y2="${y+47}" stroke="#171717" stroke-width="2"/>`}
-      ${marker}
     </svg>`;
   }
-  function renderCatalog(){
-    const filter=$("catalogFilter").value;
-    const shown=positions.filter(p=>filter==="all" || String(p.string)===filter);
-    $("catalogCount").textContent=`${shown.length} positions`;
-    $("catalogGrid").innerHTML=shown.map(p=>{
-      const fretText=p.fret===0?"Open":`${p.fret}${ordinal(p.fret)} fret`;
-      return `<article class="catalog-item">
-        ${staffSVG(p)}
-        <div class="catalog-label">${p.label}</div>
-        <div class="catalog-detail">String ${p.string} · ${fretText}</div>
-      </article>`;
-    }).join("");
-  }
   function weightedTarget(){
-    const mode=$("mode").value;
-    if(mode==="all" || !Object.keys(data.byPos).length) return positions[Math.floor(Math.random()*positions.length)];
-    const weights=positions.map(p=>{
-      const s=data.byPos[p.id]||{seen:0,miss:0};
-      const rate=s.seen?s.miss/s.seen:0.35;
-      return {p,w:1+rate*7+(s.miss*0.6)+(s.seen===0?1.5:0)};
+    if($("mode").value==="all") return notePool[Math.floor(Math.random()*notePool.length)];
+    const weighted=notePool.map(note=>{
+      const group=positions.filter(p=>p.note===note);
+      const weight=group.reduce((sum,p)=>{
+        const st=data.byPos[p.id]||{seen:0,miss:0};
+        return sum+1+(st.miss*2)+(st.seen===0?0.7:0);
+      },0);
+      return {note,weight};
     });
-    const total=weights.reduce((a,x)=>a+x.w,0); let r=Math.random()*total;
-    for(const x of weights){r-=x.w;if(r<=0)return x.p}
-    return positions[0];
+    const total=weighted.reduce((n,x)=>n+x.weight,0);let r=Math.random()*total;
+    for(const x of weighted){r-=x.weight;if(r<=0)return x.note}
+    return weighted[0].note;
+  }
+  function renderFretboard(){
+    const grid=$("fretboard");
+    const headers=["STRING","OPEN","FRET 1","FRET 2","FRET 3","FRET 4"];
+    grid.innerHTML=headers.map((h,i)=>`<div class="fret-head">${h}</div>`).join("");
+    for(let stringNo=1;stringNo<=6;stringNo++){
+      const stringPositions=positions.filter(p=>p.string===stringNo).sort((a,b)=>a.fret-b.fret);
+      const sh=document.createElement("div");sh.className="string-head";
+      sh.innerHTML=`<b>${stringNo}</b>`;grid.appendChild(sh);
+      stringPositions.forEach(p=>{
+        const btn=document.createElement("button");btn.type="button";btn.className="fret-cell";
+        btn.dataset.pos=p.id;btn.dataset.fret=String(p.fret);btn.setAttribute("aria-label",`String ${p.string}, ${p.fret===0?"open":`fret ${p.fret}`}`);
+        btn.innerHTML=`<span class="pick" aria-hidden="true"></span>`;
+        btn.addEventListener("click",()=>{
+          if(answered)return;
+          if(selectedIds.has(p.id)){selectedIds.delete(p.id);btn.classList.remove("selected")}
+          else{selectedIds.add(p.id);btn.classList.add("selected")}
+          $("next").disabled=selectedIds.size===0;
+        });
+        grid.appendChild(btn);
+      });
+    }
   }
   function newQuestion(){
-    current=weightedTarget();selected=null;answered=false;questionNo++;
-    $("staff").innerHTML=staffSVG(current);
+    currentNote=weightedTarget();
+    targetPositions=positions.filter(p=>p.note===currentNote);
+    selectedIds=new Set();answered=false;questionNo++;
+    const notationPosition=[...targetPositions].sort((a,b)=>a.string-b.string || a.fret-b.fret)[0];
+    $("targetNotation").innerHTML=staffSVG(notationPosition);
     $("questionCount").textContent=`Question ${questionNo}`;
-    $("modeLabel").textContent=$("mode").value==="weak"?"Weak positions first":"All positions";
+    $("modeLabel").textContent=$("mode").value==="weak"?"Weak positions first":"All note names";
     $("feedback").className="feedback";$("feedback").textContent="";
-    $("next").textContent="Submit answer";$("next").disabled=true;
-    const board=$("fretboard");
-    board.querySelectorAll(".fret-cell").forEach(cell=>cell.remove());
-    // Eye view: 1st (thin/high E) string at the top, 6th (thick/low E) at the bottom.
-    for(let stringNo=1;stringNo<=6;stringNo++){
-      const label=document.createElement("div");
-      label.className="fretboard-string";
-      label.textContent=stringNo;
-      board.appendChild(label);
-      for(let fret=0;fret<=4;fret++){
-        const pos=positions.find(x=>x.string===stringNo && x.fret===fret);
-        const cell=document.createElement("button");
-        cell.type="button";
-        cell.className="fret-cell";
-        cell.dataset.position=pos.id;
-        cell.setAttribute("aria-label",`String ${stringNo}, ${fret===0?"open":`fret ${fret}`}`);
-        cell.innerHTML='<span class="dot" aria-hidden="true"></span>';
-        cell.addEventListener("click",()=>{
-          if(answered)return;
-          selected=pos.id;
-          board.querySelectorAll(".fret-cell").forEach(x=>x.classList.toggle("selected",x===cell));
-          $("next").disabled=false;
-        });
-        board.appendChild(cell);
-      }
-    }
+    $("next").textContent="Submit positions";$("next").disabled=true;
     $("skip").disabled=false;
+    renderFretboard();
   }
   function submit(){
-    if(!current)return;
     if(!answered){
-      if(!selected)return;
+      if(selectedIds.size===0)return;
       answered=true;data.attempts++;
-      const bucket=data.byPos[current.id]||(data.byPos[current.id]={seen:0,miss:0});
-      bucket.seen++;
-      const correct=selected===current.id;
-      if(correct){data.correct++;data.streak++}else{bucket.miss++;data.streak=0}
-      document.querySelectorAll(".fret-cell").forEach(cell=>{
-        cell.disabled=true;
-        if(cell.dataset.position===current.id)cell.classList.add("correct");
-        else if(cell.dataset.position===selected)cell.classList.add("wrong");
-        cell.classList.remove("selected");
+      const targetSet=new Set(targetPositions.map(p=>p.id));
+      const exact=[...targetSet].every(id=>selectedIds.has(id)) && [...selectedIds].every(id=>targetSet.has(id));
+      targetPositions.forEach(p=>{
+        const bucket=data.byPos[p.id]||(data.byPos[p.id]={seen:0,miss:0});
+        bucket.seen++;
+        if(!selectedIds.has(p.id))bucket.miss++;
       });
-      const fret=current.fret===0?"Open":`${current.fret}${ordinal(current.fret)} fret`;
-      $("feedback").className=`feedback show ${correct?"good":"bad"}`;
-      $("feedback").textContent=`${correct?"Correct!":"Incorrect."} Correct answer: ${current.label}. String ${current.string}, ${fret}.`;
+      [...selectedIds].filter(id=>!targetSet.has(id)).forEach(id=>{
+        const bucket=data.byPos[id]||(data.byPos[id]={seen:0,miss:0});
+        bucket.seen++;bucket.miss++;
+      });
+      if(exact){data.correct++;data.streak++}else data.streak=0;
+      document.querySelectorAll(".fret-cell").forEach(btn=>{
+        btn.disabled=true;
+        const id=btn.dataset.pos;
+        if(targetSet.has(id))btn.classList.add(selectedIds.has(id)?"correct":"missed");
+        else if(selectedIds.has(id))btn.classList.add("wrong");
+      });
+      const answerList=targetPositions.map(p=>p.label).join(" · ");
+      $("feedback").className=`feedback show ${exact?"good":"bad"}`;
+      $("feedback").textContent=`${exact?"Perfect! All positions found.":"Not quite. The correct positions are:"} ${answerList}.`;
       $("next").textContent="Next question";save();renderStats();
     }else newQuestion();
   }
-  $("toggleCatalog").addEventListener("click",()=>{
-    const panel=$("catalogPanel");
-    panel.hidden=!panel.hidden;
-    $("toggleCatalog").textContent=panel.hidden?"Show all 30 notations":"Hide notation reference";
-    if(!panel.hidden) renderCatalog();
-  });
-  $("catalogFilter").addEventListener("change",renderCatalog);
   $("next").addEventListener("click",submit);
   $("skip").addEventListener("click",()=>{if(!answered){newQuestion()}});
-  $("mode").addEventListener("change",()=>{newQuestion();$("modeHelp").textContent=$("mode").value==="weak"?"Questions are weighted toward positions you miss or have not practised enough.":"Questions are randomized across all 30 valid positions."});
+  $("mode").addEventListener("change",()=>{newQuestion();$("modeHelp").textContent=$("mode").value==="weak"?"Questions are weighted toward note names containing positions you miss or have not practised enough.":"Questions are randomized across all 12 note names found in the first 30 positions."});
   $("reset").addEventListener("click",()=>{if(confirm("Reset all practice statistics on this device?")){data={attempts:0,correct:0,streak:0,byPos:{}};save();renderStats();newQuestion()}});
   renderStats();newQuestion();
   if("serviceWorker" in navigator && location.protocol.startsWith("http")) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
